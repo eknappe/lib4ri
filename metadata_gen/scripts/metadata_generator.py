@@ -167,7 +167,7 @@ class DatalakeMetadataGen:
                     print("     No insitution listed")
                 print(f"    ORCID ID: {orcid_id}")
                 
-                if self.get_yes_no("Use this ORCID ID?"):
+                if self.get_yes_no("\nUse this ORCID ID?"):
                     return orcid_id, display_name, current_institution
                 else:
                     return None
@@ -190,7 +190,7 @@ class DatalakeMetadataGen:
              
             while True:
                 try:
-                    choice = int(input(f"Select option (1-{len(results)+1}): "))
+                    choice = int(input(f"\nSelect option (1-{len(results)+1}): "))
                     
                     if 1 <= choice <= len(valid_results):
                         selected = valid_results[choice-1]
@@ -382,7 +382,7 @@ class DatalakeMetadataGen:
                 print(f" Name: {result['name']}{alias_str}")
                 print(f" Country: {result.get('country', {}).get('country_name','N/A')}")
                 
-                if self.get_yes_no("Use this ROR ID?"):
+                if self.get_yes_no("\nUse this ROR ID?"):
                     return ror_id
                 else:
                     return None
@@ -410,7 +410,7 @@ class DatalakeMetadataGen:
             
             while True:
                 try:
-                    choice = int(input(f"Select option (1-{len(results) +1}): "))
+                    choice = int(input(f"\nSelect option (1-{len(results) +1}): "))
                     
                     if 1 <= choice <= len(results):
                         selected = results[choice -1]
@@ -480,11 +480,11 @@ class DatalakeMetadataGen:
             
             #orcid is just a suggestion, they dont have to use it 
             if suggested_affiliation:
-                print(f"\nFound affiliation from ORCID: {suggested_affiliation}")
-                if self.get_yes_no("Use this affiliation?"):
+                #print(f"\nFound affiliation from ORCID: {suggested_affiliation}")
+                if self.get_yes_no("\nUse this affiliation?"):
                     affiliation_data = {'name': suggested_affiliation, 'ror_id': ''}
                     #look up ROR
-                    if self.get_yes_no("\nLook up ROR ID for this affilation?"):
+                    if self.get_yes_no("\nROR is a unique ID for institutions. Look up ROR ID for this affilation?"):
                         ror_id = self.lookup_ror_id(suggested_affiliation)
                         affiliation_data['ror_id'] = ror_id or ''
                 else:
@@ -610,7 +610,7 @@ class DatalakeMetadataGen:
                 
                 if suggested_affiliation:
                     print(f"\nFound affiliation from ORCID: {suggested_affiliation}")
-                    if self.get_yes_no("Use this affiliation?"):
+                    if self.get_yes_no("\nUse this affiliation?"):
                         affiliation_data = {'name':suggested_affiliation, 'ror_id': ''}
                         #look up ror
                         if self.get_yes_no("\nLook up ROR IS for this affiliation?"):
@@ -1135,11 +1135,11 @@ if __name__ == "__main__":
     #save the file
     if generator.get_yes_no("\nWould you like to save this to a file? (y/n): "):
         while True:
-            filename_prefix = generator.get_user_input("Enter filename prefix", default="metadata")
+            filename_prefix = generator.get_user_input("\nEnter filename prefix", default="metadata")
             filename_suffix = datetime.now().strftime("%Y-%m-%d")
             filename = f"{filename_prefix}_{filename_suffix}"
             
-            output_directory = generator.get_user_input("Save directory (enter full folder path) :", default="./metadata_output")
+            output_directory = generator.get_user_input("\nSave directory (enter full folder path) :", default="./metadata_output")
             
             output_directory = os.path.abspath(output_directory)
             print(f"Resolved output directory: '{output_directory}'")
@@ -1147,7 +1147,7 @@ if __name__ == "__main__":
             file_loc = os.path.join(output_directory, f"{filename}.json")
              
             
-            confirm = generator.get_yes_no(f"Will save file as: {file_loc} - is this correct? (y/n)")
+            confirm = generator.get_yes_no(f"\nWill save file as: {file_loc} - is this correct? (y/n)")
                 
             if confirm:
                 break
