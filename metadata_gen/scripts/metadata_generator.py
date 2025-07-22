@@ -41,7 +41,14 @@ class DatalakeMetadataGen:
         
     def get_user_input(self, prompt: str, required: bool = True, default: str = None) -> str:
         #User input and validation check for the different sections 
-        while True:
+        
+        #after a certain amount of time, leave the infinite loop
+        max_attempts = 6
+        attempts=0
+        
+        while attempts < max_attempts:
+            remaining = max_attempts - attempts
+
             display_prompt = f"{prompt} (default: {default}): " if default else f"{prompt}: "
             user_input = input(display_prompt).strip()
             
@@ -51,7 +58,13 @@ class DatalakeMetadataGen:
                 elif not required:
                     return ""
                 else:
-                    print("This field is required. Please enter a value.")
+                    attempts += 1
+                    remaining = max_attempts - attempts #need this again so that it prints when max reached
+                    if remaining > 0:
+                        print("This field is required. Please enter a value.")
+                    else:
+                        print("Max attempts reached. Skipping this field.")
+                        return ""
             else:
                 return user_input
             
@@ -69,20 +82,28 @@ class DatalakeMetadataGen:
     
     def validate_doi(self, doi: str) -> str:
         #validate the format of the doi
-        if not doi:
-            return ""
+        while True:
+            if not doi:
+                return ""
+            
+            #remove common doi prefixes if present
+            cleandoi = doi.replace('https://doi.org/', '').replace('doi:', '')
+            
+            doi_pattern =r'^10\.\d{4,}/\S+$'
+            
+            if re.match(doi_pattern, cleandoi):
+                return cleandoi
+            
+            else:
+                print(f"Warning '{doi}' does not appear to be a valid doi format")
+                print("Expected format: 10.xxxx/yyyy")
+                choice = input("\nTo re-enter DOI press 'y', or press enter to skip: ").strip().lower()
+                if choice in ('y','yes'): #in case they say yes
+                    doi = input("\nEnter DOI: ").strip()
+                    continue #start again
+                else:
+                    return ""
         
-        #remove common doi prefixes if present
-        cleandoi = doi.replace('https://doi.org/', '').replace('doi:', '')
-        
-        doi_pattern =r'^10\.\d{4,}/\S+$'
-        
-        if re.match(doi_pattern, cleandoi):
-            return cleandoi
-        else:
-            print(f"Warning '{doi}' does not appear to be a valid doi format")
-            print("Expected format: 10.xxxx/yyyy")
-            return cleandoi
         
         
     def validate_coordinates(self, coord:str, coord_type: str) -> str:
@@ -216,13 +237,23 @@ class DatalakeMetadataGen:
         #ask for name and then optionally look up orcid id and affil
         name = ""
         
-        while True:
+        #dont get stuck in an infinite loop
+        max_attempts = 10 #they really should have a name!
+        attempts = 0
+        
+        while attempts < max_attempts:
             name = input(f"{prompt_text}: ").strip()
             
             if name or not required:
                 break
-            print("This field is required. Please enter a name.")
-        
+            
+            attempts += 1
+            remaining = max_attempts - attempts
+            if remaining > 0:
+                print("\nThis field is required. Please enter a name.")
+            else:
+                print("\nMaximum attempts reached. Skipping this field.")
+                print("\nYou really don't have a name?......")
         if not name:
             return {'name': '', 'orcid_id': '', 'primary_affiliation': ''}
         
@@ -273,15 +304,15 @@ class DatalakeMetadataGen:
                 print(f"Warning: '{orcid}' is not a valid ORCID format.")
                 print("Expected format is 0000-0000-0000-0000 (last digit can be X)")
                 
-                choice = input("Enter 'r' to re-enter ORCID, or 's' to skip (leave blank)").strip().lower()
-                if choice == 's':
+                choice = input("\nEnter 'y' to re-enter ORCID, or 'n' to skip (to leave blank)").strip().lower()
+                if choice == 'n' or choice == '':
                     return ""
-                elif choice == 'r':
+                elif choice == 'y':
                     orcid = input("Enter ORCID ID: ").strip()
                     if not orcid: #eg they entered nothing
                         return ""
                 else:
-                    print("Please enter 'r' or 's'")
+                    print("\nPlease enter 'y' or 'n'")
                     continue
         
         
@@ -473,7 +504,7 @@ class DatalakeMetadataGen:
             print("------------------------------")
             
             #the fields to be collected in this function
-            creator_data = self.get_name_with_orcid("Primary author name")
+            creator_data = self.get_name_with_orcid("\nPrimary author name")
             creator = creator_data['name']
             auto_orcid = creator_data['orcid_id']
             suggested_affiliation = creator_data['primary_affiliation']
