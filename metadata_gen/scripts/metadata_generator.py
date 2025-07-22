@@ -1068,7 +1068,7 @@ class DatalakeMetadataGen:
         #build subjects (keywords)
         subjects = []
         if self.metadata.get('keywords_list'):
-            for keyword in self.metadata('keyword_list'):
+            for keyword in self.metadata['keywords_list']:
                 subjects.append({"subject":keyword})
         
         
